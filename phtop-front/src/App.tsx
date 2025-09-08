@@ -28,24 +28,24 @@ async function clearAll(): Promise<{ ok: boolean }> {
   return res.json(); // { ok: true }
 }
 
-  async function uploadMany(files: File[], concurrency = 3, setMessage: (s: string)=>void) {
-    const results: UploadResult[] = new Array(files.length);
-    let idx = 0;
+async function uploadMany(files: File[], concurrency = 3, setMessage: (s: string)=>void) {
+  const results: UploadResult[] = new Array(files.length);
+  let idx = 0;
 
-    async function worker() {
-      while (idx < files.length) {
-        const i = idx++;
-        results[i] = await uploadOne(files[i]);
-        setMessage(idx + "/" + files.length);
-      }
+  async function worker() {
+    while (idx < files.length) {
+      const i = idx++;
+      results[i] = await uploadOne(files[i]);
+      setMessage(idx + "/" + files.length);
     }
-    const workers = Array.from(
-      { length: Math.min(concurrency, files.length) },
-      worker
-    );
-    await Promise.all(workers);
-    return results;
   }
+  const workers = Array.from(
+    { length: Math.min(concurrency, files.length) },
+    worker
+  );
+  await Promise.all(workers);
+  return results;
+}
 
 export default function App() {
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -61,11 +61,11 @@ export default function App() {
     const files = Array.from(e.target.files ?? []);
     if (!files.length) return;
     setBusy(true);
-    setMessage("업로드 중… (동시 3개)");
-    const results = await uploadMany(files, 3, setMessage);
+    setUploadMessage("업로드 중… (동시 3개)");
+    const results = await uploadMany(files, 3, setUploadMessage);
     setItems(results);
     setBusy(false);
-    setMessage("uploaded! download it in PC");
+    setUploadMessage("uploaded! download it in PC");
     // 같은 파일 재업로드 허용
     if (inputRef.current) inputRef.current.value = "";
   };
@@ -139,12 +139,12 @@ export default function App() {
           {busy ? "업로드 중…" : "choose pictures and upload in Phone"}
         </button>
 
-        <div style={{ marginTop: 10, fontSize: 13, color: "#444" }}>{message}</div>
+        <div style={{ marginTop: 10, fontSize: 13, color: "#444" }}>{uploadMessage}</div>
 
-        <button onClick={() => downloadAllIndividually(setMsg)} style={{ width: "100%", padding: 10, borderRadius: 10 }}>
+        <button onClick={() => downloadAllIndividually(setDownloadMessage)} style={{ width: "100%", padding: 10, borderRadius: 10 }}>
           download it all in PC
         </button>
-        <div style={{marginTop: 8, fontSize: 13 }}>{msg}</div>
+        <div style={{marginTop: 8, fontSize: 13 }}>{downloadMessage}</div>
 
         <div style={{marginTop: 8, fontSize: 13 }}>
           설명 : 1분이 지나거나 누군가가 파일을 업로드하면 기존 파일은 서버에서 삭제됩니다. 삭제되기 전까지는 누구든 몇회든 파일을 다운받을 수 있습니다.
