@@ -58,8 +58,15 @@ export default function App() {
 
   const onChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     await clearAll();
-    const files = Array.from(e.target.files ?? []);
+    let files = Array.from(e.target.files ?? []);
     if (!files.length) return;
+
+    // 👉 20장 제한
+    if (files.length > 20) {
+      alert(`You can upload 20 images maximum. (currently ${files.length} images selected)`);
+      files = files.slice(0, 20); // 20장까지만 유지
+    }
+
     setBusy(true);
     setUploadMessage("업로드 중… (동시 3개)");
     const results = await uploadMany(files, 3, setUploadMessage);
@@ -116,8 +123,8 @@ export default function App() {
         padding: 16,
         boxShadow: "0 8px 24px rgba(0,0,0,0.08)"
       }}>
-        <h1 style={{ margin: 5, fontSize: 20, fontWeight: 700 }}>PHTOP - phone to PC</h1>
-        <h2 style={{ margin: 5, fontSize: 15, fontWeight: 500 }}>most simple webapp to move your file from phone to PC</h2>
+        <h1 style={{ margin: 5, fontSize: 20, fontWeight: 700 }}>PHTOP - PHone TO Pc</h1>
+        <h2 style={{ margin: 5, fontSize: 15, fontWeight: 500 }}>Most simple webapp to move your file from phone to PC</h2>
 
         <input
           ref={inputRef}
@@ -136,18 +143,19 @@ export default function App() {
             cursor: busy ? "default" : "pointer", fontSize: 16
           }}
         >
-          {busy ? "업로드 중…" : "choose pictures and upload in Phone"}
+          {busy ? "업로드 중…" : "Choose pictures and upload in Phone"}
         </button>
 
         <div style={{ marginTop: 10, fontSize: 13, color: "#444" }}>{uploadMessage}</div>
 
         <button onClick={() => downloadAllIndividually(setDownloadMessage)} style={{ width: "100%", padding: 10, borderRadius: 10 }}>
-          download it all in PC
+          Download it all in PC
         </button>
         <div style={{marginTop: 8, fontSize: 13 }}>{downloadMessage}</div>
 
         <div style={{marginTop: 8, fontSize: 13 }}>
-          설명 : 1분이 지나거나 누군가가 파일을 업로드하면 기존 파일은 서버에서 삭제됩니다. 삭제되기 전까지는 누구든 몇회든 파일을 다운받을 수 있습니다.
+          Anyone can upload and download files.
+          Uploaded files last for 1 minute or before you or someone upload new files.
         </div>
       </div>
     </div>
