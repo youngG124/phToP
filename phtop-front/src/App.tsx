@@ -19,24 +19,6 @@ async function uploadOne(file: File): Promise<UploadResult> {
   }
 }
 
-async function uploadMany(files: File[], concurrency = 3) {
-  const results: UploadResult[] = new Array(files.length);
-  let idx = 0;
-
-  async function worker() {
-    while (idx < files.length) {
-      const i = idx++;
-      results[i] = await uploadOne(files[i]);
-    }
-  }
-  const workers = Array.from(
-    { length: Math.min(concurrency, files.length) },
-    worker
-  );
-  await Promise.all(workers);
-  return results;
-}
-
 // 모든 업로드 파일 서버에서 삭제
 export async function clearAll(): Promise<{ ok: boolean }> {
   const res = await fetch("/api/clear", {
@@ -55,13 +37,32 @@ export default function App() {
 
   const onPick = () => inputRef.current?.click();
 
+  async function uploadMany(files: File[], concurrency = 3, setMessage: (s: string)=>void) {
+    const results: UploadResult[] = new Array(files.length);
+    let idx = 0;
+
+    async function worker() {
+      while (idx < files.length) {
+        const i = idx++;
+        results[i] = await uploadOne(files[i]);
+        setMessage(idx + "/" + files.length);
+      }
+    }
+    const workers = Array.from(
+      { length: Math.min(concurrency, files.length) },
+      worker
+    );
+    await Promise.all(workers);
+    return results;
+  }
+
   const onChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     await clearAll();
     const files = Array.from(e.target.files ?? []);
     if (!files.length) return;
     setBusy(true);
     setMessage("업로드 중… (동시 3개)");
-    const results = await uploadMany(files, 3);
+    const results = await uploadMany(files, 3, setMessage);
     setItems(results);
     setBusy(false);
     setMessage("uploaded! download it in PC");
