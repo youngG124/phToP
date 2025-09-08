@@ -20,22 +20,13 @@ async function uploadOne(file: File): Promise<UploadResult> {
 }
 
 // 모든 업로드 파일 서버에서 삭제
-export async function clearAll(): Promise<{ ok: boolean }> {
+async function clearAll(): Promise<{ ok: boolean }> {
   const res = await fetch("/api/clear", {
     method: "POST",
   });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return res.json(); // { ok: true }
 }
-
-export default function App() {
-  const inputRef = useRef<HTMLInputElement | null>(null);
-  const [busy, setBusy] = useState(false);
-  const [, setItems] = useState<UploadResult[]>([]);
-  const [message, setMessage] = useState("");
-  const [msg, setMsg] = useState("");
-
-  const onPick = () => inputRef.current?.click();
 
   async function uploadMany(files: File[], concurrency = 3, setMessage: (s: string)=>void) {
     const results: UploadResult[] = new Array(files.length);
@@ -55,6 +46,15 @@ export default function App() {
     await Promise.all(workers);
     return results;
   }
+
+export default function App() {
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [, setItems] = useState<UploadResult[]>([]);
+  const [uploadMessage, setUploadMessage] = useState("");
+  const [downloadMessage, setDownloadMessage] = useState("");
+
+  const onPick = () => inputRef.current?.click();
 
   const onChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     await clearAll();
